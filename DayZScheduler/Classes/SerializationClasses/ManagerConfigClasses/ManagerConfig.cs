@@ -1,12 +1,5 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using DayZScheduler.Classes.SerializationClasses.BecClasses;
 
 namespace DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses
 {
@@ -41,6 +34,8 @@ namespace DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses
         public int SlotLimit { get; set; }
         public string SlotLimitKickMsg { get; set; }
         public int Timeout { get; set; }
+
+        public List<JobItem> CustomMessages { get; set; }
 
         public ManagerConfig()
         {
@@ -102,6 +97,10 @@ namespace DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses
             SlotLimit = -1;
             SlotLimitKickMsg = "The Server has reached its player limit.";
             Timeout = 60;
+            CustomMessages =
+            [
+                new JobItem(0, false, new Dictionary<string, double>{{"hours", 0}, { "minutes", 20 }, { "seconds", 0} }, new Dictionary<string, double>{{"hours", 0}, { "minutes", 10 }, { "seconds", 0} }, 0, "say -1 Make sure to visit our Discord")
+            ];
         }
     }
 }

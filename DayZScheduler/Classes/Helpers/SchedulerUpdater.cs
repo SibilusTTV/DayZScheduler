@@ -1,5 +1,6 @@
 ﻿using DayZScheduler.Classes.SerializationClasses.BecClasses;
 using DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace DayZScheduler.Classes.Helpers
 {
     internal static class SchedulerUpdater
     {
-        public static SchedulerFile CreateNewSchedulerFile(ManagerConfig config)
+        public static SchedulerFile? CreateNewSchedulerFile(ManagerConfig config)
         {
             if (config != null)
             {
@@ -24,11 +25,11 @@ namespace DayZScheduler.Classes.Helpers
                 {
                     if (config.OnlyRestarts)
                     {
-                        return CreateOnlyRestartsSchedulerFile(config.Interval);
+                        return CreateOnlyRestartsSchedulerFile(config);
                     }
                     else
                     {
-                        return CreateFullSchedulerFile(config.Interval);
+                        return CreateFullSchedulerFile(config);
                     }
                 }
             }
@@ -38,11 +39,22 @@ namespace DayZScheduler.Classes.Helpers
             }
         }
 
-        private static SchedulerFile CreateFullSchedulerFile(int interval)
+        private static SchedulerFile CreateFullSchedulerFile(ManagerConfig config)
         {
+            int interval = config.Interval;
+            SchedulerFile sch = new SchedulerFile();
+            sch.JobItems = new List<JobItem>();
+            int id = 0;
+
+            foreach (JobItem item in config.CustomMessages)
+            {
+                item.ID = id;
+                sch.JobItems.Add(item);
+                id++;
+            }
+
             if (interval > 0)
             {
-                int id = 0;
                 Dictionary<string, double> runtime = new Dictionary<string, double>
                 {
                     {"hours", 0},
@@ -67,12 +79,18 @@ namespace DayZScheduler.Classes.Helpers
                 string fiveMinuteCmd = "say -1 Alert: The Server is restarting in 5 minutes! Please land your helicopters as soon as possible!";
                 string oneMinuteCmd = "say -1 Alert: The Server is restarting in 1 minute! Please log out in order to prevent inventory loss!";
                 string restartingNowCmd = "say -1 Alert: The Server is restarting now!!";
+                
+                string serverRestartNotice = "";
+                if (interval == 1)
+                {
+                    serverRestartNotice = $"say -1 The Server restarts every hour";
+                }
+                else
+                {
+                    serverRestartNotice = $"say -1 The Server restarts every {interval} hours";
+                }
 
-                string joinDCmsg = "say -1 Press B for more information on the server or ask on Discord!";
-                SchedulerFile sch = new SchedulerFile();
-                sch.JobItems = new List<JobItem>();
-
-                sch.JobItems.Add(new JobItem(id, false, new Dictionary<string, double> { { "hours", 0 }, { "minutes", 10 }, { "seconds", 0 } }, runtimeDCmsg, -1, joinDCmsg));
+                sch.JobItems.Add(new JobItem(id, false, new Dictionary<string, double> { { "hours", 0 }, { "minutes", 10 }, { "seconds", 0 } }, runtimeDCmsg, -1, serverRestartNotice));
                 id++;
 
                 for (int i = 0; i < 24; i++)
@@ -108,22 +126,26 @@ namespace DayZScheduler.Classes.Helpers
                         id++;
                     }
                 }
-                return sch;
             }
-            else
-            {
-                return null;
-            }
+            return sch;
         }
         
-        private static SchedulerFile CreateOnlyRestartsSchedulerFile(int interval)
+        private static SchedulerFile CreateOnlyRestartsSchedulerFile(ManagerConfig config)
         {
+            int interval = config.Interval;
+            SchedulerFile sch = new SchedulerFile();
+            sch.JobItems = new List<JobItem>();
+            int id = 0;
+
+            foreach (JobItem item in config.CustomMessages)
+            {
+                item.ID = id;
+                sch.JobItems.Add(item);
+                id++;
+            }
+
             if (interval > 0)
             {
-                SchedulerFile sch = new SchedulerFile();
-                sch.JobItems = new List<JobItem>();
-
-                int id = 0;
                 Dictionary<string, double> runtime = new Dictionary<string, double>
                 {
                     { "hours", 0 },
@@ -152,21 +174,16 @@ namespace DayZScheduler.Classes.Helpers
                         id++;
                     }
                 }
-                return sch;
             }
-            else
-            {
-                return null; 
-            }
+            return sch;
         }
 
-        private static SchedulerFile CreateOnUpdateSchedulerFile(int interval)
+        private static SchedulerFile? CreateOnUpdateSchedulerFile(int interval)
         {
             if (interval > 0)
             {
                 SchedulerFile sch = new SchedulerFile();
                 sch.JobItems = new List<JobItem>();
-
                 int id = 0;
                 Dictionary<string, double> runtime = new Dictionary<string, double>
                 {
@@ -205,6 +222,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 14 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 15 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                     else if (currentTime.Minute >= 5 && currentTime.Minute < 20)
                     {
@@ -223,6 +241,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 29 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 30 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                 }
                 else
@@ -240,6 +259,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 14 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 15 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                     else if (currentTime.Minute >= 5 && currentTime.Minute < 20)
                     {
@@ -258,6 +278,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 29 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 30 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                     else if (currentTime.Minute >= 20 && currentTime.Minute < 35)
                     {
@@ -276,6 +297,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 44 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 45 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                     else if (currentTime.Minute >= 35 && currentTime.Minute < 50)
                     {
@@ -294,6 +316,7 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", hour }, { "minutes", 59 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", nextHour }, { "minutes", 0 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                     else if (currentTime.Minute >= 50 && currentTime.Minute < 60)
                     {
@@ -313,14 +336,11 @@ namespace DayZScheduler.Classes.Helpers
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", nextHour }, { "minutes", 14 }, { "seconds", 50 } }, runtime, restartNowLoop, restartingNowCmd));
                         id++;
                         sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", nextHour }, { "minutes", 15 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        return sch;
                     }
                 }
-                return sch;
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

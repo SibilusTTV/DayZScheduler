@@ -1,29 +1,19 @@
 ﻿
-
-using BattleNET;
-using DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses;
-using System;
-using System.Net;
-using DayZScheduler.Classes.SerializationClasses.Serializers;
-using DayZScheduler.Classes.SerializationClasses.BecClasses;
-using System.IO;
-using System.Collections.Generic;
-using Microsoft.VisualBasic.FileIO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using DayZScheduler.Classes.Network;
 using DayZScheduler.Classes.Helpers;
+using DayZScheduler.Classes.Network;
+using DayZScheduler.Classes.SerializationClasses.BecClasses;
+using DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses;
+using DayZScheduler.Classes.SerializationClasses.Serializers;
+using Microsoft.VisualBasic.FileIO;
 
-namespace DayZScheduler 
+namespace DayZScheduler
 {
     class Manager
     {
-        private static RCON rconClient;
-        private static ManagerConfig config;
-        private static SchedulerFile scheduler;
-        private static List<Timer> tasks;
+        private static RCON? rconClient;
+        private static ManagerConfig? config;
+        private static SchedulerFile? scheduler;
+        private static List<Timer>? tasks;
         public static bool stop = false;
 
         #region Constants
@@ -35,14 +25,22 @@ namespace DayZScheduler
         {
             GetStartParameters(args);
 
-            List<string> directories = FileSystem.GetDirectories(AppContext.BaseDirectory).ToList<string>();
-            if (directories.Find(x => Path.GetFileName(x) == CONFIG_FOLDER) == null)
+            try
             {
-                FileSystem.CreateDirectory(CONFIG_FOLDER);
+                List<string> directories = FileSystem.GetDirectories(AppContext.BaseDirectory).ToList<string>();
+                if (directories.Find(x => Path.GetFileName(x) == CONFIG_FOLDER) == null)
+                {
+                    FileSystem.CreateDirectory(CONFIG_FOLDER);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteToConsole(ex.ToString());
+                return;
             }
 
             config = JSONSerializer.DeserializeJSONFile<ManagerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME));
-            if (config == null )
+            if (config == null)
             {
                 config = new ManagerConfig();
             }
@@ -66,16 +64,26 @@ namespace DayZScheduler
             }
             JSONSerializer.SerializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
 
-            CreateTasks(scheduler.JobItems);
 
             WriteToConsole($"Waiting for {config.Timeout} seconds until TimeOut is over");
             Thread.Sleep(config.Timeout * 1000);
 
+            CreateTasks(scheduler.JobItems);
+
             WriteToConsole("Connecting to the Server");
             rconClient = new RCON(config.IP, config.Port, config.Password);
+            if (!rconClient.IsConnected())
+            {
+                WriteToConsole("Couldn't connect to the Server");
+                return;
+            }
+            else
+            {
+                WriteToConsole("Connected to the Server");
+            }
 
             WriteToConsole("Scheduling all tasks");
-            while (tasks.Count > 0 && !stop)
+            while (tasks != null && tasks.Count > 0 && !stop)
             {
                 Thread.Sleep(60000);
             }
