@@ -60,7 +60,7 @@ namespace DayZScheduler
             }
             else
             {
-                JSONSerializer.SerializeJSONFile<SchedulerConfig>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
+                JSONSerializer.SerializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
             }
 
 
