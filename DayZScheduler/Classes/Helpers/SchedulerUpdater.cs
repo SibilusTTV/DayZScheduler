@@ -1,5 +1,5 @@
-﻿using DayZScheduler.Classes.SerializationClasses.BecClasses;
-using DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses;
+﻿using DayZScheduler.Classes.SerializationClasses.SchedulerFileClasses;
+using DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections;
@@ -13,7 +13,7 @@ namespace DayZScheduler.Classes.Helpers
 {
     internal static class SchedulerUpdater
     {
-        public static SchedulerFile? CreateNewSchedulerFile(ManagerConfig config)
+        public static SchedulerFile? CreateNewSchedulerFile(SchedulerConfig config)
         {
             if (config != null)
             {
@@ -39,7 +39,7 @@ namespace DayZScheduler.Classes.Helpers
             }
         }
 
-        private static SchedulerFile CreateFullSchedulerFile(ManagerConfig config)
+        private static SchedulerFile CreateFullSchedulerFile(SchedulerConfig config)
         {
             int interval = config.Interval;
             SchedulerFile sch = new SchedulerFile();
@@ -130,7 +130,7 @@ namespace DayZScheduler.Classes.Helpers
             return sch;
         }
         
-        private static SchedulerFile CreateOnlyRestartsSchedulerFile(ManagerConfig config)
+        private static SchedulerFile CreateOnlyRestartsSchedulerFile(SchedulerConfig config)
         {
             int interval = config.Interval;
             SchedulerFile sch = new SchedulerFile();

@@ -1,8 +1,8 @@
 ﻿
 using DayZScheduler.Classes.Helpers;
 using DayZScheduler.Classes.Network;
-using DayZScheduler.Classes.SerializationClasses.BecClasses;
-using DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses;
+using DayZScheduler.Classes.SerializationClasses.SchedulerFileClasses;
+using DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses;
 using DayZScheduler.Classes.SerializationClasses.Serializers;
 using Microsoft.VisualBasic.FileIO;
 
@@ -11,7 +11,7 @@ namespace DayZScheduler
     class Manager
     {
         private static RCON? rconClient;
-        private static ManagerConfig? config;
+        private static SchedulerConfig? config;
         private static SchedulerFile? scheduler;
         private static List<Timer>? tasks;
         public static bool stop = false;
@@ -39,12 +39,12 @@ namespace DayZScheduler
                 return;
             }
 
-            config = JSONSerializer.DeserializeJSONFile<ManagerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME));
+            config = JSONSerializer.DeserializeJSONFile<SchedulerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME));
             if (config == null)
             {
-                config = new ManagerConfig();
+                config = new SchedulerConfig();
             }
-            JSONSerializer.SerializeJSONFile<ManagerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME), config);
+            JSONSerializer.SerializeJSONFile<SchedulerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME), config);
 
             if (config.Interval <= 0)
             {
@@ -57,6 +57,10 @@ namespace DayZScheduler
             {
                 WriteToConsole("It's not a good time to update");
                 return;
+            }
+            else
+            {
+                JSONSerializer.SerializeJSONFile<SchedulerConfig>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
             }
 
 

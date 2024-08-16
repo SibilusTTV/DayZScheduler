@@ -1,9 +1,9 @@
 ﻿
-using DayZScheduler.Classes.SerializationClasses.BecClasses;
+using DayZScheduler.Classes.SerializationClasses.SchedulerFileClasses;
 
-namespace DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses
+namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
 {
-    internal class ManagerConfig
+    internal class SchedulerConfig
     {
         public string IP { get; set; }
         public int Port { get; set; }
@@ -37,7 +37,7 @@ namespace DayZScheduler.Classes.SerializationClasses.ManagerConfigClasses
 
         public List<JobItem> CustomMessages { get; set; }
 
-        public ManagerConfig()
+        public SchedulerConfig()
         {
             IP = "127.0.0.1";
             Port = 2306;

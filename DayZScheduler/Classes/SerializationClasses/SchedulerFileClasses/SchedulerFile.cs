@@ -1,5 +1,5 @@
 ﻿
-namespace DayZScheduler.Classes.SerializationClasses.BecClasses
+namespace DayZScheduler.Classes.SerializationClasses.SchedulerFileClasses
 {
     public class SchedulerFile
     {
