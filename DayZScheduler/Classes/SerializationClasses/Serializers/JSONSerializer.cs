@@ -1,6 +1,5 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System;
-using System.IO;
+﻿
+using Microsoft.VisualBasic.FileIO;
 using System.Text.Json;
 
 namespace DayZScheduler.Classes.SerializationClasses.Serializers
@@ -26,7 +25,7 @@ namespace DayZScheduler.Classes.SerializationClasses.Serializers
         }
 
         // Takes a path and returns the deserialized class
-        public static JSONFile DeserializeJSONFile<JSONFile>(string path)
+        public static JSONFile? DeserializeJSONFile<JSONFile>(string path)
         {
             try
             {
@@ -35,7 +34,7 @@ namespace DayZScheduler.Classes.SerializationClasses.Serializers
                     using (StreamReader reader = new StreamReader(path))
                     {
                         string json = reader.ReadToEnd();
-                        return JsonSerializer.Deserialize<JSONFile>(json);
+                        return JsonSerializer.Deserialize<JSONFile?>(json);
                     }
                 }
                 else

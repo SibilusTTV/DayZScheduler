@@ -1,38 +1,35 @@
-﻿using BattleNET;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using BytexDigital.BattlEye.Rcon;
 
 namespace DayZScheduler.Classes.Network
 {
     internal class RCON
     {
-        private BattlEyeClient client;
+        private RconClient client;
 
         public RCON(string ip, int port, string password)
         {
-            Connect(ip, port, password);
+            client = Connect(ip, port, password);
         }
 
-        private void Connect(string ip, int port, string password)
+        private RconClient Connect(string ip, int port, string password)
         {
-            BattlEyeLoginCredentials credentials = new BattlEyeLoginCredentials
-            {
-                Host = IPAddress.Parse(ip),
-                Port = port,
-                Password = password
-            };
-            client = new BattlEyeClient(credentials);
-            client.BattlEyeDisconnected += OnDisconnect;
-            client.Connect();
+            Manager.WriteToConsole($"Connecting to {ip}:{port} with password {password}");
+            RconClient _client = new RconClient(ip, port, password);
+            _client.MessageReceived += _client_MessageReceived;
+            _client.Connect();
+            _client.WaitUntilConnected();
+            return _client;
+        }
+
+        private void _client_MessageReceived(object? sender, string e)
+        {
+            Manager.WriteToConsole(e);
         }
 
         public void SendCommand(string command)
         {
-            client.SendCommand(command);
+            client.Send(command);
         }
 
         public void Disconnect()
@@ -40,9 +37,9 @@ namespace DayZScheduler.Classes.Network
             client.Disconnect();
         }
 
-        private void OnDisconnect(BattlEyeDisconnectEventArgs args)
+        public bool IsConnected()
         {
-            Manager.stop = true;
+            return client.IsConnected;
         }
     }
 }
