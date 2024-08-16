@@ -30,10 +30,6 @@ namespace DayZScheduler.Classes.Network
         public void SendCommand(string command)
         {
             client.Send(command);
-            if (command == "#shutdown")
-            {
-                Manager.stop = true;
-            }
         }
 
         public void Disconnect()

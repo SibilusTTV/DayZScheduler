@@ -52,17 +52,12 @@ namespace DayZScheduler
                 return;
             }
 
-            scheduler = JSONSerializer.DeserializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler));
-            if (scheduler == null || config.IsOnUpdate)
+            scheduler = SchedulerUpdater.CreateNewSchedulerFile(config);
+            if (scheduler == null)
             {
-                scheduler = SchedulerUpdater.CreateNewSchedulerFile(config);
-                if (scheduler == null)
-                {
-                    WriteToConsole("It's not a good time to update");
-                    return;
-                }
+                WriteToConsole("It's not a good time to update");
+                return;
             }
-            JSONSerializer.SerializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
 
 
             WriteToConsole($"Waiting for {config.Timeout} seconds until TimeOut is over");
@@ -82,12 +77,23 @@ namespace DayZScheduler
                 WriteToConsole("Connected to the Server");
             }
 
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
             WriteToConsole("Scheduling all tasks");
             while (tasks != null && tasks.Count > 0 && !stop)
             {
                 Thread.Sleep(60000);
             }
             WriteToConsole("The Server was disconnected");
+        }
+
+        private static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+        {
+            stop = true;
+            if (rconClient != null) 
+            {
+                rconClient.Disconnect();
+            }
         }
 
         private static void GetStartParameters(string[] args)
