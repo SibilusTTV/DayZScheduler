@@ -3,36 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 namespace DayZScheduler.Classes.SerializationClasses.BecClasses
 {
-    [XmlRoot("Job")]
     public class JobItem
     {
-        [XmlAttribute("id")]
-        public int id;
-        [XmlElement("day")]
-        public string days;
-        [XmlElement("start")]
-        public string start;
-        [XmlElement("runtime")]
-        public string runtime;
-        [XmlElement("loop")]
-        public int loop;
-        [XmlElement("cmd")]
-        public string cmd;
+        public int ID { get; set; }
+        public bool IsTimeOfDay { get; set; }
+        public Dictionary<string,double> WaitTime { get; set; }
+        public Dictionary<string,double> Interval { get; set; }
+        public int Loop { get; set; }
+        public string Cmd {  get; set; }
 
         public JobItem() { }
 
-        public JobItem(int id, string days, string start, string runtime, int loop, string cmd)
+        public JobItem(int id, bool timeofday, Dictionary<string,double> start, Dictionary<string,double> runtime, int loop, string cmd)
         {
-            this.id = id;
-            this.days = days;
-            this.start = start;
-            this.runtime = runtime;
-            this.loop = loop;
-            this.cmd = cmd;
+            this.ID = id;
+            this.IsTimeOfDay = timeofday;
+            this.WaitTime = start;
+            this.Interval = runtime;
+            this.Loop = loop;
+            this.Cmd = cmd;
         }
     }
 }

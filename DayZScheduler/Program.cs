@@ -13,170 +13,153 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using DayZScheduler.Classes.Network;
+using DayZScheduler.Classes.Helpers;
 
 namespace DayZScheduler 
 {
     class Manager
     {
-        private static BattlEyeClient client;
+        private static RCON rconClient;
         private static ManagerConfig config;
         private static SchedulerFile scheduler;
         private static List<Timer> tasks;
-        private static bool stop;
+        public static bool stop = false;
+
+        #region Constants
+        public const string CONFIG_FOLDER = "Config";
+        public static string CONFIG_NAME = "Config.json";
+        #endregion Constants
 
         static void Main(string[] args)
         {
-            config = JSONSerializer.DeserializeJSONFile<ManagerConfig>("Config.json");
+            GetStartParameters(args);
+
+            List<string> directories = FileSystem.GetDirectories(AppContext.BaseDirectory).ToList<string>();
+            if (directories.Find(x => Path.GetFileName(x) == CONFIG_FOLDER) == null)
+            {
+                FileSystem.CreateDirectory(CONFIG_FOLDER);
+            }
+
+            config = JSONSerializer.DeserializeJSONFile<ManagerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME));
             if (config == null )
             {
                 config = new ManagerConfig();
             }
-            JSONSerializer.SerializeJSONFile<ManagerConfig>("Config.json", config);
+            JSONSerializer.SerializeJSONFile<ManagerConfig>(Path.Combine(CONFIG_FOLDER, CONFIG_NAME), config);
 
-            List<string> directories = FileSystem.GetDirectories(AppContext.BaseDirectory).ToList<string>();
-            if (directories.Find(x => Path.GetFileName(x) == "Config") == null)
+            if (config.Interval <= 0)
             {
-                FileSystem.CreateDirectory("Config");
+                WriteToConsole("The interval needs to be at least 1");
+                return;
             }
 
-            scheduler = XMLSerializer.DeserializeXMLFile<SchedulerFile>(Path.Combine("Config", config.Scheduler));
-            if (scheduler == null )
+            scheduler = JSONSerializer.DeserializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler));
+            if (scheduler == null || config.IsOnUpdate)
             {
-                scheduler = CreateNewSchedulerFile();
+                scheduler = SchedulerUpdater.CreateNewSchedulerFile(config);
+                if (scheduler == null)
+                {
+                    WriteToConsole("It's not a good time to update");
+                    return;
+                }
             }
-            XMLSerializer.SerializeXMLFile<SchedulerFile>(Path.Combine("Config", config.Scheduler), scheduler);
+            JSONSerializer.SerializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
 
-            Connect(config.IP, config.Port, config.Password);
+            CreateTasks(scheduler.JobItems);
 
+            WriteToConsole($"Waiting for {config.Timeout} seconds until TimeOut is over");
+            Thread.Sleep(config.Timeout * 1000);
+
+            WriteToConsole("Connecting to the Server");
+            rconClient = new RCON(config.IP, config.Port, config.Password);
+
+            WriteToConsole("Scheduling all tasks");
+            while (tasks.Count > 0 && !stop)
+            {
+                Thread.Sleep(60000);
+            }
+            WriteToConsole("The Server was disconnected");
+        }
+
+        private static void GetStartParameters(string[] args)
+        {
+            for (int i = 0; i < args.Length; i++)
+            {
+                switch (args[i].ToLower())
+                {
+                    case "-config":
+                        if (i + 1 < args.Length)
+                        {
+                            CONFIG_NAME = args[i + 1];
+                        }
+                        CONFIG_NAME = args[i + 1];
+                        break;
+                }
+            }
+        }
+
+        private static void CreateTasks(List<JobItem> items)
+        {
             int scheduledItems = 0;
 
             tasks = new List<Timer>();
-            foreach (JobItem item in scheduler.JobItems)
+            foreach (JobItem item in items)
             {
                 DateTime now = DateTime.Now;
-                List<string> time = item.start.Split(':').ToList<string>();
-                DateTime scheduledJob = DateTime.Today.AddHours(Convert.ToDouble(time[0])).AddMinutes(Convert.ToDouble(time[1])).AddSeconds(Convert.ToDouble(time[2]));
+                DateTime scheduledJob;
+                if (item.IsTimeOfDay)
+                {
+                    scheduledJob = DateTime.Today;
+                }
+                else
+                {
+                    scheduledJob = DateTime.Now;
+                }
+                scheduledJob = scheduledJob.AddHours(item.WaitTime["hours"]).AddMinutes(item.WaitTime["minutes"]).AddSeconds(item.WaitTime["seconds"]);
+
                 TimeSpan waitTime = scheduledJob - now;
                 if (waitTime.TotalSeconds < 0)
                 {
                     scheduledJob = scheduledJob.AddDays(1);
                     waitTime = scheduledJob - now;
                 }
-                tasks.Add(new Timer((object state) => { ExecuteFunction(item); }, null, waitTime, TimeSpan.FromDays(1)));
-                scheduledItems++;
+
+                TimeSpan sp;
+                if (item.Interval["hours"] == 0 && item.Interval["minutes"] == 0 && item.Interval["seconds"] == 0)
+                {
+                    sp = TimeSpan.FromDays(1);
+                }
+                else
+                {
+                    sp = TimeSpan.FromHours(item.Interval["hours"]);
+                    sp.Add(TimeSpan.FromMinutes(item.Interval["minutes"]));
+                    sp.Add(TimeSpan.FromSeconds(item.Interval["seconds"]));
+                }
+
+                if (item.Loop > 0)
+                {
+                    for (int i = 0; i < item.Loop; i++)
+                    {
+                        tasks.Add(new Timer((object state) => { ExecuteFunction(item); }, null, waitTime.Add(TimeSpan.FromSeconds(i)), sp));
+                        scheduledItems++;
+                    }
+                }
+                else
+                {
+                    tasks.Add(new Timer((object state) => { ExecuteFunction(item); }, null, waitTime, sp));
+                    scheduledItems++;
+                }
             }
-            WriteToConsole($"{scheduledItems} tasks were scheduled");
-            while (tasks.Count > 0 && !stop)
-            {
-                Thread.Sleep(60000);
-            }
+            WriteToConsole($"{scheduledItems} tasks were created");
         }
 
         private static void ExecuteFunction(JobItem item)
         {
-            WriteToConsole($"Sending command {item.cmd}");
-            SendCommand(item.cmd);
-        }
-
-        public static void SendCommand(string command)
-        {
-            client.SendCommand(command);
-        }
-
-        public static void Connect(string ip, int port, string password)
-        {
-            BattlEyeLoginCredentials credentials = new BattlEyeLoginCredentials
+            WriteToConsole($"Sending command {item.Cmd}");
+            if (rconClient != null)
             {
-                Host = IPAddress.Parse(ip),
-                Port = port,
-                Password = password
-            };
-            client = new BattlEyeClient(credentials);
-            client.Connect();
-        }
-
-        public static void Disconnect()
-        {
-            client.Disconnect();
-        }
-
-        private static SchedulerFile CreateNewSchedulerFile()
-        {
-            int interval = 1;
-
-            int id = 0;
-            string days = "1,2,3,4,5,6,7";
-            string runtime = "000000";
-            int loop = 0;
-            string cmdShutdown = "#shutdown";
-            string cmdLock = "#lock";
-            string oneHourCmd = "say -1 Alert: The Server is restarting in 1 hour";
-            string thirtyMinuteCmd = "say -1 Alert: The Server is restarting in 30 minutes";
-            string fifteenMinuteCmd = "say -1 Alert: The Server is restarting in 15 minutes";
-            string fiveMinuteCmd = "say -1 Alert: The Server is restarting in 5 minutes! Please land your helicopters as soon as possible!";
-            string oneMinuteCmd = "say -1 Alert: The Server is restarting in 1 minute! Please log out in order to prevent inventory loss!";
-            string restartingNowCmd = "say -1 Alert: The Server is restarting now!!";
-
-            //string joinDCmsg = "say -1 Press B for more information on the server or ask on Discord!";
-
-            //sch.JobItems.Add(new JobItem(id, days, "001000", "002000", -1, joinDCmsg));
-            //id++;
-
-            if (interval != 0)
-            {
-                SchedulerFile sch = new SchedulerFile();
-                sch.JobItems = new List<JobItem>();
-                for (int i = 0; i < 24; i++)
-                {
-                    string hour;
-                    if (i < 10)
-                    {
-                        hour = $"0{i}";
-                    }
-                    else
-                    {
-                        hour = $"{i}";
-                    }
-
-                    if (i % interval == interval - 1 || interval == 1)
-                    {
-                        if (interval == 1)
-                        {
-                            string start = $"{hour}:00:00";
-                            sch.JobItems.Add(new JobItem(id, days, start, runtime, loop, cmdShutdown));
-                            id++;
-                        }
-                        else
-                        {
-                            sch.JobItems.Add(new JobItem(id, days, $"{hour}:00:00", runtime, loop, oneHourCmd));
-                            id++;
-                        }
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:30:00", runtime, loop, thirtyMinuteCmd));
-                        id++;
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:45:00", runtime, loop, fifteenMinuteCmd));
-                        id++;
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:55:00", runtime, loop, fiveMinuteCmd));
-                        id++;
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:59:00", runtime, loop, oneMinuteCmd));
-                        id++;
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:59:00", runtime, loop, cmdLock));
-                        id++;
-                        sch.JobItems.Add(new JobItem(id, days, $"{hour}:59:50", runtime, loop, restartingNowCmd));
-                        id++;
-
-                    }
-                    else if (i % interval == 0)
-                    {
-                        string start = $"{hour}:00:00";
-                        sch.JobItems.Add(new JobItem(id, days, start, runtime, loop, cmdShutdown));
-                        id++;
-                    }
-                }
-                return sch;
-            }
-            else
-            {
-                return null;
+                rconClient.SendCommand(item.Cmd);
             }
         }
 

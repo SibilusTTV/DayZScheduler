@@ -75,11 +75,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Helpers\SchedulerUpdater.cs" />
+    <Compile Include="Classes\Network\RCON.cs" />
     <Compile Include="Classes\SerializationClasses\BecClasses\JobItem.cs" />
     <Compile Include="Classes\SerializationClasses\BecClasses\SchedulerFile.cs" />
     <Compile Include="Classes\SerializationClasses\ManagerConfigClasses\ManagerConfig.cs" />
     <Compile Include="Classes\SerializationClasses\Serializers\JSONSerializer.cs" />
-    <Compile Include="Classes\SerializationClasses\Serializers\XMLSerializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
