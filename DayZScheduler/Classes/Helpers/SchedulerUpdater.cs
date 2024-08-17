@@ -162,15 +162,15 @@ namespace DayZScheduler.Classes.Helpers
                     {
                         if (interval == 1)
                         {
-                            sch.JobItems.Add(new JobItem(id, false, new Dictionary<string, double> { { "hours", i }, { "minutes", 0 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                            sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", i }, { "minutes", 0 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
                             id++;
                         }
-                        sch.JobItems.Add(new JobItem(id, false, new Dictionary<string, double> { { "hours", i }, { "minutes", 59 }, { "seconds", 0 } }, runtime, loop, cmdLock));
+                        sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", i }, { "minutes", 59 }, { "seconds", 0 } }, runtime, loop, cmdLock));
                         id++;
                     }
                     else if (i % interval == 0)
                     {
-                        sch.JobItems.Add(new JobItem(id, false, new Dictionary<string, double> { { "hours", i }, { "minutes", 0 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
+                        sch.JobItems.Add(new JobItem(id, true, new Dictionary<string, double> { { "hours", i }, { "minutes", 0 }, { "seconds", 0 } }, runtime, loop, cmdShutdown));
                         id++;
                     }
                 }
