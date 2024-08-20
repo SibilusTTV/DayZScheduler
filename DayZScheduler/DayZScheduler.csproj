@@ -10,5 +10,4 @@
   <ItemGroup>
     <PackageReference Include="BytexDigital.BattlEye.Rcon" Version="1.0.2" />
   </ItemGroup>
-
 </Project>

@@ -17,8 +17,8 @@ namespace DayZScheduler
         public static bool stop = false;
 
         #region Constants
-        public const string CONFIG_FOLDER = "Config";
-        public static string CONFIG_NAME = "Config.json";
+        public const string CONFIG_FOLDER = "config";
+        public static string CONFIG_NAME = "config.json";
         #endregion Constants
 
         static void Main(string[] args)

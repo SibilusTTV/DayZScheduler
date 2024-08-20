@@ -45,7 +45,7 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
             Interval = 4;
             OnlyRestarts = false;
             IsOnUpdate = false;
-            BePath = Path.Combine("..", "Server", "Profiles", "BattlEye");
+            BePath = Path.Combine("..", "server", "Profiles", "BattlEye");
             AutoLoadBans = true;
             Ban = 3;
             AsciiNickOnly = false;
@@ -85,13 +85,13 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
             MinPlayerNameLength = 3;
             MaxPlayerNameLength = 16;
             UseWordFilter = true;
-            WordFilterFile = "BadWords.txt";
+            WordFilterFile = "bad-words.txt";
             UseWhiteList = false;
-            WhiteListFile = "WhiteList.txt";
+            WhiteListFile = "white-list.txt";
             WhiteListKickMsg = "You are not whitelisted on this server.";
             UseNickFilter = true;
-            NickFilterFile = "BadNames.txt";
-            Scheduler = "Scheduler.json";
+            NickFilterFile = "bad-names.txt";
+            Scheduler = "scheduler.json";
             KickLobbyIdlers = 300;
             ChatChannelFiles = true;
             SlotLimit = -1;
