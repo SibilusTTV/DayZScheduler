@@ -15,6 +15,10 @@ namespace DayZScheduler
         private static SchedulerFile? scheduler;
         private static List<Timer>? tasks;
         public static bool stop = false;
+        public static List<string> FilteredWords = new List<string>();
+        public static List<string> WhitelistedUsers = new List<string>();
+        public static List<string> FilteredNicks = new List<string>();
+        public static List<string> BannedUsers = new List<string>();
 
         #region Constants
         public const string CONFIG_FOLDER = "config";
@@ -63,6 +67,66 @@ namespace DayZScheduler
                 JSONSerializer.SerializeJSONFile<SchedulerFile>(Path.Combine(CONFIG_FOLDER, config.Scheduler), scheduler);
             }
 
+            if (!File.Exists(config.BansPath))
+            {
+                File.Create(config.BansPath);
+            }
+            else
+            {
+                using (StreamReader sr = new StreamReader(config.BansPath))
+                {
+                    string bansFile = sr.ReadToEnd();
+                    BannedUsers = bansFile.Split("\n").ToList<string>();
+                }
+            }
+
+            if (config.UseWordFilter)
+            {
+                if (!File.Exists(Path.Combine("config", config.WordFilterFile)))
+                {
+                    File.Create(Path.Combine("config", config.WordFilterFile));
+                }
+                else
+                {
+                    using (StreamReader sr = new StreamReader(Path.Combine("config", config.WordFilterFile)))
+                    {
+                        string wordFilterFile = sr.ReadToEnd();
+                        FilteredWords = wordFilterFile.Split("\n").ToList<string>();
+                    }
+                }
+            }
+
+            if (config.UseWhiteList)
+            {
+                if (!File.Exists(Path.Combine("config", config.WhiteListFile)))
+                {
+                    File.Create(Path.Combine("config", config.WhiteListFile));
+                }
+                else
+                {
+                    using (StreamReader sr = new StreamReader(Path.Combine("config", config.WhiteListFile)))
+                    {
+                        string whitelistFile = sr.ReadToEnd();
+                        WhitelistedUsers = whitelistFile.Split("\n").ToList<string>();
+                    }
+                }
+            }
+
+            if (config.UseNickFilter)
+            {
+                if (!File.Exists(Path.Combine("config", config.NickFilterFile)))
+                {
+                    File.Create(Path.Combine("config", config.NickFilterFile));
+                }
+                else
+                {
+                    using (StreamReader sr = new StreamReader(Path.Combine("config", config.NickFilterFile)))
+                    {
+                        string nickFilteFile = sr.ReadToEnd();
+                        FilteredNicks = nickFilteFile.Split("\n").ToList<string>();
+                    }
+                }
+            }
 
             WriteToConsole($"Waiting for {config.Timeout} seconds until TimeOut is over");
             Thread.Sleep(config.Timeout * 1000);
@@ -84,7 +148,7 @@ namespace DayZScheduler
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
             WriteToConsole("Scheduling all tasks");
-            while (tasks != null && tasks.Count > 0 && !stop && rconClient != null && rconClient.IsConnected())
+            while (tasks != null && tasks.Count > 0 && rconClient != null && rconClient.IsConnected())
             {
                 Thread.Sleep(60000);
             }

@@ -13,6 +13,8 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
         public bool OnlyRestarts {  get; set; }
         public string BePath { get; set; }
         public bool AutoLoadBans {  get; set; }
+        public string BansPath { get; set; }
+        public string BannedMessage { get; set; }
         public int Ban {  get; set; }
         public bool AsciiNickOnly { get; set; }
         public bool AsciiChatOnly { get; set; }
@@ -23,11 +25,13 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
         public int MaxPlayerNameLength { get; set; }
         public bool UseWordFilter { get; set; }
         public string WordFilterFile { get; set; }
+        public string FilterWordMessage { get; set; }
         public bool UseWhiteList { get; set; }
         public string WhiteListFile { get; set; }
         public string WhiteListKickMsg { get; set; }
         public bool UseNickFilter { get; set; }
         public string NickFilterFile { get; set; }
+        public string FilteredNickMessage { get; set; }
         public string Scheduler { get; set; }
         public int KickLobbyIdlers { get; set; }
         public bool ChatChannelFiles { get; set; }
@@ -48,6 +52,8 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
             IsOnUpdate = false;
             BePath = Path.Combine("..", "server", "Profiles", "BattlEye");
             AutoLoadBans = true;
+            BansPath = Path.Combine("..", "server", "ban.txt");
+            BannedMessage = "You are banned! Don't come back!";
             Ban = 3;
             AsciiNickOnly = false;
             AsciiChatOnly = true;
@@ -87,11 +93,13 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
             MaxPlayerNameLength = 16;
             UseWordFilter = true;
             WordFilterFile = "bad-words.txt";
+            FilterWordMessage = "Please refrain from using forbidden language or you will get kicked!";
             UseWhiteList = false;
             WhiteListFile = "white-list.txt";
-            WhiteListKickMsg = "You are not whitelisted on this server.";
+            WhiteListKickMsg = "You are not whitelisted on this server!";
             UseNickFilter = true;
             NickFilterFile = "bad-names.txt";
+            FilteredNickMessage = "You are using forbidden words in your user name";
             Scheduler = "scheduler.json";
             KickLobbyIdlers = 300;
             ChatChannelFiles = true;
