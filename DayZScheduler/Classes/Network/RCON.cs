@@ -27,10 +27,17 @@ namespace DayZScheduler.Classes.Network
             _client.PlayerConnected += _client_PlayerConnected;
             _client.PlayerDisconnected += _client_PlayerDisconnected;
             _client.PlayerRemoved += _client_PlayerRemoved;
+            _client.Disconnected += _client_Disconnected;
             _client.ReconnectOnFailure = false;
             _client.Connect();
             _client.WaitUntilConnected();
             return _client;
+        }
+
+        private void _client_Disconnected(object? sender, EventArgs e)
+        {
+            _client.Disconnect();
+            Manager.stop = true;
         }
 
         private void _client_PlayerRemoved(object? sender, BytexDigital.BattlEye.Rcon.Events.PlayerRemovedArgs e)
