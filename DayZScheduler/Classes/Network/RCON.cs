@@ -30,13 +30,12 @@ namespace DayZScheduler.Classes.Network
             _client.Disconnected += _client_Disconnected;
             _client.ReconnectOnFailure = false;
             _client.Connect();
-            _client.WaitUntilConnected();
+            _client.WaitUntilConnected(10);
             return _client;
         }
 
         private void _client_Disconnected(object? sender, EventArgs e)
         {
-            _client.Disconnect();
             Manager.stop = true;
         }
 
