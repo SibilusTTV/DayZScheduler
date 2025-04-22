@@ -11,7 +11,7 @@ namespace DayZScheduler
     class Manager
     {
         private static RCON? rconClient;
-        private static SchedulerConfig? config;
+        public static SchedulerConfig? config;
         private static SchedulerFile? scheduler;
         private static List<Timer>? tasks;
         public static bool stop = false;
@@ -84,7 +84,7 @@ namespace DayZScheduler
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
             WriteToConsole("Scheduling all tasks");
-            while (tasks != null && tasks.Count > 0 && !stop)
+            while (tasks != null && tasks.Count > 0 && !stop && rconClient != null && rconClient.IsConnected())
             {
                 Thread.Sleep(60000);
             }

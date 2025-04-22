@@ -34,6 +34,7 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
         public int SlotLimit { get; set; }
         public string SlotLimitKickMsg { get; set; }
         public int Timeout { get; set; }
+        public int ConnectTimeout { get; set; }
 
         public List<JobItem> CustomMessages { get; set; }
 
@@ -97,6 +98,7 @@ namespace DayZScheduler.Classes.SerializationClasses.SchedulerConfigClasses
             SlotLimit = -1;
             SlotLimitKickMsg = "The Server has reached its player limit.";
             Timeout = 60;
+            ConnectTimeout = 10;
             CustomMessages =
             [
                 new JobItem(0, false, new Dictionary<string, double>{{"hours", 0}, { "minutes", 20 }, { "seconds", 0} }, new Dictionary<string, double>{{"hours", 0}, { "minutes", 10 }, { "seconds", 0} }, 0, "say -1 Make sure to visit our Discord")

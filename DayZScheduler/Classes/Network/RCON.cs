@@ -30,7 +30,14 @@ namespace DayZScheduler.Classes.Network
             _client.Disconnected += _client_Disconnected;
             _client.ReconnectOnFailure = false;
             _client.Connect();
-            _client.WaitUntilConnected(10);
+            if (Manager.config != null)
+            {
+                _client.WaitUntilConnected(Manager.config.ConnectTimeout * 1000);
+            }
+            else
+            {
+                _client.WaitUntilConnected(10000);
+            }
             return _client;
         }
 
