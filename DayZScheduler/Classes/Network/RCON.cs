@@ -80,7 +80,7 @@ namespace DayZScheduler.Classes.Network
             {
                 foreach (string filteredNick in Manager.FilteredNicks)
                 {
-                    if (e.Name.ToLower().Contains(filteredNick.ToLower()))
+                    if (!string.IsNullOrEmpty(filteredNick) && e.Name.ToLower().Contains(filteredNick.ToLower()))
                     {
                         _client.Send($"kick {e.Id} \"{Manager.config?.FilteredNickMessage}\"");
                         Manager.WriteToConsole($"Player {e.Name} was kicked, because they are using forbidden words in their user name");
